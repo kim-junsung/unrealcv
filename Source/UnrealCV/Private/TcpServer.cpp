@@ -2,6 +2,7 @@
 #include "TcpServer.h"
 #include "Networking.h"
 #include <string>
+#include "Kismet/KismetSystemLibrary.h"
 
 uint32 FSocketMessageHeader::DefaultMagic = 0x9E2B83C1;
 
@@ -24,7 +25,7 @@ bool FSocketMessageHeader::WrapAndSendPayload(const TArray<uint8>& Payload, FSoc
         // GetData returns a uint8 pointer
         Socket->Send(Ar.GetData() + TotalAmountSent, Ar.Num() - TotalAmountSent, AmountSent);
         NumTrial--;
-
+        
         if (AmountSent == -1)
         {
             continue;
@@ -35,7 +36,7 @@ bool FSocketMessageHeader::WrapAndSendPayload(const TArray<uint8>& Payload, FSoc
             UE_LOG(LogUnrealCV, Error, TEXT("Unable to send. Expect to send %d, sent %d"), Ar.Num(), TotalAmountSent);
             return false;
         }
-
+        
         UE_LOG(LogUnrealCV, Verbose, TEXT("Sending bytes %d/%d, sent %d"), TotalAmountSent, Ar.Num(), AmountSent);
         AmountToSend -= AmountSent;
         TotalAmountSent += AmountSent;
@@ -165,7 +166,7 @@ void BinaryArrayFromString(const FString& Message, TArray<uint8>& OutBinaryArray
 	// OutBinaryArray.Append(CharArray);
 	// This can work, but will add tailing \0 also behavior is not well defined.
 
-	OutBinaryArray.Append((UTF8CHAR*)Convert.Get(), Convert.Length());
+	OutBinaryArray.Append((uint8*)Convert.Get(), Convert.Length());
 }
 
 

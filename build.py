@@ -2,7 +2,7 @@
 # Weichao Qiu @ 2017
 # Use python build.py to build the plugin
 import argparse
-from unrealcv.automation import UE4Automation
+from client.python.unrealcv.automation import UE5Automation
 import os
 
 def main():
@@ -23,7 +23,7 @@ def main():
         help='Output folder for this script'
     )
     parser.add_argument(
-        '--UE4',
+        '--UE5',
         help='Specify the engine path. If left empty, default installation locations will be used'
     )
     parser.add_argument(
@@ -35,7 +35,7 @@ def main():
     args = parser.parse_args()
     need_install = args.install
 
-    ue4 = UE4Automation(args.UE4)
+    ue5 = UE5Automation(args.UE5)
 
     if args.output:
         output_folder = args.output
@@ -50,19 +50,19 @@ def main():
             output_folder = 'Plugins/UnrealCV'
         abs_output_folder = os.path.abspath(output_folder)
 
-        ue4.build_plugin(abs_descriptor_file, abs_output_folder, args.overwrite)
+        ue5.build_plugin(abs_descriptor_file, abs_output_folder, args.overwrite)
 
         # Install the plugin if requested
         if need_install:
-            ue4.install(plugin_folder = abs_output_folder, overwrite = True)
+            ue5.install(plugin_folder = abs_output_folder, overwrite = True)
 
     elif descriptor_file.endswith('.uproject'):
         project_name = os.path.basename(descriptor_file).split('.')[0]
         if not output_folder:
-            output_folder = 'UE4Binaries/%s' % project_name
+            output_folder = 'UE5Binaries/%s' % project_name
         abs_output_folder = os.path.abspath(output_folder)
 
-        ue4.package(abs_descriptor_file, abs_output_folder)
+        ue5.package(abs_descriptor_file, abs_output_folder)
 
 if __name__ == '__main__':
     main()
