@@ -7,16 +7,16 @@ except NameError: pass
 
 def get_platform_name():
     ''''
-    Python and UE4 use different names for platform, in this script we will use UE4 platform name exclusively
+    Python and UE5 use different names for platform, in this script we will use UE5 platform name exclusively
     '''
-    py2UE4 = {
-        # pyname : ue4name
+    py2UE5 = {
+        # pyname : ue5name
         "Darwin": "Mac",
         "Windows": "Win64",
         "Linux": "Linux"
     }
-    # Key: python platform name, Value: UE4
-    platform_name = py2UE4.get(platform.system())
+    # Key: python platform name, Value: UE5
+    platform_name = py2UE5.get(platform.system())
     if not platform_name:
         print('Can not recognize platform %s' % platform.system())
     return platform_name
@@ -27,14 +27,14 @@ def get_plugin_version(plugin_descriptor):
     plugin_version = description['VersionName']
     return plugin_version
 
-class UE4Automation:
-    ''' UE4 engine wrapper '''
+class UE5Automation:
+    ''' UE5 engine wrapper '''
     def __init__(self, engine):
         self.platform_name = self._get_platform_name()
         if engine:
-            self.UE4_dir = engine
+            self.UE5_dir = engine
         else:
-            self.UE4_dir = self._get_UE4_dir()
+            self.UE5_dir = self._get_UE5_dir()
         self.abs_UAT_path = self._get_UATPath()
 
     def _get_platform_name(self):
@@ -56,7 +56,7 @@ class UE4Automation:
 
         if overwrite == False and os.path.isdir(abs_output_folder):
             print('Output folder "%s" already exists, skip compilation.' % abs_output_folder)
-            print('Remove this folder if you want to compile the plugin with a different UE4 version.')
+            print('Remove this folder if you want to compile the plugin with a different UE5 version.')
         else:
             script_dir = os.path.dirname(os.path.realpath(__file__))
             subprocess.call([
@@ -68,7 +68,7 @@ class UE4Automation:
 
     def install(self, plugin_folder, overwrite = False):
         '''
-        Install the plugin to UE4 engine folder
+        Install the plugin to UE5 engine folder
 
         Parameters
         ----------
@@ -76,7 +76,7 @@ class UE4Automation:
             The plugin folder with compiled binaries
         '''
         print('-' * 30 + ' Install ' + '-' * 30)
-        engine_plugin_folder = os.path.join(self.UE4_dir, 'Engine', 'Plugins')
+        engine_plugin_folder = os.path.join(self.UE5_dir, 'Engine', 'Plugins')
         abs_tgt_unrealcv_folder = os.path.join(engine_plugin_folder, 'UnrealCV')
         abs_src_unrealcv_folder = plugin_folder
 
@@ -93,12 +93,12 @@ class UE4Automation:
 
     def package(self, project_descriptor, output_folder, overwrite = False):
         '''
-        Package an UE4 project
+        Package an UE5 project
 
         Parameters
         ----------
         project_descriptor : str
-            UE4 project file name ends with *.uproject
+            UE5 project file name ends with *.uproject
         overwrite : bool
             Overwrite existing files
         '''
@@ -126,46 +126,49 @@ class UE4Automation:
         }
         platform_name = self._get_platform_name()
         UAT_relative_path = platform2UATRelativePath.get(platform_name)
-        UAT_abs_path = os.path.join(self.UE4_dir, UAT_relative_path)
+        UAT_abs_path = os.path.join(self.UE5_dir, UAT_relative_path)
         return UAT_abs_path
 
 
 
-    def _get_UE4_dir(self):
+    def _get_UE5_dir(self):
         win_candidates = [
-            'C:\\Program Files\\Epic Games\\UE_4.??',
-            'D:\\Program Files\\Epic Games\\UE_4.??',]
+            'C:\\Program Files\\Epic Games\\UE_5.*',
+            'D:\\Program Files\\Epic Games\\UE_5.*',
+            'E:\\Program Files\\Epic Games\\UE_5.*',]
         linux_candidates = [
             os.path.expanduser('~/UnrealEngine'),
             os.path.expanduser('~/workspace/UnrealEngine'),
-            os.path.expanduser('~/workspace/UE4??'),]
-        mac_candidates = ['/Users/Shared/Epic Games/UE_4.??',]
+            os.path.expanduser('~/workspace/UE5??'),]
+        mac_candidates = ['/Users/Shared/Epic Games/UE_5.??',]
         search_candidates = {'Linux': linux_candidates, 'Mac': mac_candidates, 'Win64': win_candidates}
         candidates = search_candidates.get(self._get_platform_name())
 
-        found_UE4 = []
-        for c in candidates: found_UE4 += glob.glob(c)
-        # Ask user to make a selection
-        if len(found_UE4) == 1: return found_UE4[0]
-        if len(found_UE4) == 0:
-            print('Can not automatically found a UE4 path, please specify it with --UE4')
+        found_UE5 = []
+        for c in candidates: found_UE5 += glob.glob(c)
 
-        print('Found UE4 in the following path, please make a selection:')
-        print('\n'.join('%d : %s' % (i+1, found_UE4[i]) for i in range(len(found_UE4))))
+        # Ask user to make a selection
+        if len(found_UE5) == 1: return found_UE5[0]
+        if len(found_UE5) == 0:
+            print('Can not automatically found a UE5 path, please specify it with --UE5')
+            exit(1)
+
+        print('Found UE5 in the following path, please make a selection:')
+        print('\n'.join('%d : %s' % (i+1, found_UE5[i]) for i in range(len(found_UE5))))
 
         num = int(input())
-        return found_UE4[num-1]
+        return found_UE5[num-1]
 
 
-def UE4Binary(binary_path):
+def UE5Binary(binary_path):
     '''
     Return a platform-dependent binary for user.
 
     Examples
     --------
-    >>> binary = UE4Binary('./WindowsNoEditor/RealisticRendering.exe')  # For windows
-    >>> binary = UE4Binary('./LinuxNoEditor/RealisticRendering/Binaries/RealisticRendering') # For Linux
-    >>> binary = UE4Binary('./MacNoEditor/RealisticRendering.app') # For mac
+    >>> binary = UE5Binary('./WindowsNoEditor/RealisticRendering.exe')  # For windows
+    >>> binary = UE5Binary('./LinuxNoEditor/RealisticRendering/Binaries/RealisticRendering') # For Linux
+    >>> binary = UE5Binary('./MacNoEditor/RealisticRendering.app') # For mac
     >>> with binary: # Automatically launch and close the binary
     >>>     client.request('vget /unrealcv/status')
     >>> # Or alternatively
@@ -188,15 +191,15 @@ def UE4Binary(binary_path):
 
 import time, os
 # The environment runner
-class UE4BinaryBase(object):
+class UE5BinaryBase(object):
     '''
-    UE4BinaryBase is the base class for all platform-dependent classes, it is different from UE4Binary which serves as a factory to create a platform-dependent binary wrapper. User should use UE4Binary instead of UE4BinaryBase
+    UE5BinaryBase is the base class for all platform-dependent classes, it is different from UE5Binary which serves as a factory to create a platform-dependent binary wrapper. User should use UE5Binary instead of UE5BinaryBase
 
-    Binary is a python wrapper to control the start and stop of a UE4 binary.
+    Binary is a python wrapper to control the start and stop of a UE5 binary.
     The wrapper provides simple features to start and stop the binary, mainly useful for automate the testing.
 
     Usage:
-        bin = UE4Binary('/tmp/RealisticRendering/RealisticRendering')
+        bin = UE5Binary('/tmp/RealisticRendering/RealisticRendering')
         with bin:
             client.request('vget /camera/0/lit test.png')
     '''
@@ -214,7 +217,7 @@ class UE4BinaryBase(object):
         ''' Close the binary '''
         self.close()
 
-class WindowsBinary(UE4BinaryBase):
+class WindowsBinary(UE5BinaryBase):
     def start(self):
         print('Start windows binary %s' % self.binary_path)
         subprocess.Popen(self.binary_path)
@@ -228,7 +231,7 @@ class WindowsBinary(UE4BinaryBase):
         print('Kill windows binary with command %s' % cmd)
         subprocess.call(cmd)
 
-class LinuxBinary(UE4BinaryBase):
+class LinuxBinary(UE5BinaryBase):
     def start(self):
         null_file = open(os.devnull, 'w')
         popen_obj = subprocess.Popen([self.binary_path], stdout = null_file, stderr = null_file)
@@ -241,7 +244,7 @@ class LinuxBinary(UE4BinaryBase):
         print('Kill process %s with command %s' % (self.pid, cmd))
         subprocess.call(cmd)
 
-class MacBinary(UE4BinaryBase):
+class MacBinary(UE5BinaryBase):
     def start(self):
         popen_obj = subprocess.Popen([
             'open',
@@ -254,7 +257,7 @@ class MacBinary(UE4BinaryBase):
     def close(self):
         subprocess.call(['pkill', self.program_name])
 
-class DockerBinary(UE4BinaryBase):
+class DockerBinary(UE5BinaryBase):
     def start(self):
         # nvidia-docker run --rm -p 9000:9000 --env="DISPLAY" --volume="/tmp/.X11-unix:/tmp/.X11-unix:rw" qiuwch/rr:${version} > log/docker-rr.log &
         pass
